@@ -7,9 +7,12 @@ import com.crud_clientes.services.exceptions.DataBaseException;
 import com.crud_clientes.services.exceptions.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.Optional;
 
 @Service
@@ -40,6 +43,7 @@ public class ClienteService {
         entity.setIncome(clienteDTO.getIncome());
     }
 
+    @Transactional
     public void deleteCliente(Long id) {
         try {
             clienteRepository.deleteById(id);
@@ -48,5 +52,23 @@ public class ClienteService {
         } catch (DataIntegrityViolationException e){
             throw new DataBaseException("Existem outras tabelas que depender dessa !");
         }
+    }
+
+    @Transactional
+    public ClienteDTO updateCliente(ClienteDTO clienteDTO, Long id) {
+        try {
+            Cliente entity = clienteRepository.getOne(id);
+            convertDtoToEntity(entity, clienteDTO);
+            entity = clienteRepository.save(entity);
+            return new ClienteDTO(entity);
+        } catch (EntityNotFoundException e){
+            throw new ResourceNotFoundException("Product not found, update failed ! id: " + id);
+        }
+    }
+
+    public Page<ClienteDTO> buscarTodosPaginados(PageRequest pageRequest) {
+        Page<Cliente> lista = clienteRepository.findAll(pageRequest);
+        Page<ClienteDTO> listaDto = lista.map(x -> new ClienteDTO(x));
+        return listaDto;
     }
 }
