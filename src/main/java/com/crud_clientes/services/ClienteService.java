@@ -66,6 +66,7 @@ public class ClienteService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Page<ClienteDTO> buscarTodosPaginados(PageRequest pageRequest) {
         Page<Cliente> lista = clienteRepository.findAll(pageRequest);
         Page<ClienteDTO> listaDto = lista.map(x -> new ClienteDTO(x));
